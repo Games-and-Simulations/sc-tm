@@ -128,7 +128,7 @@ struct TournamentModuleManager {
 
     if ((BWAPI::Broodwar->getFrameCount() % 20) == 19) {
       frametimes << BWAPI::Broodwar->getFrameCount() + 1 << ", " << maxFrameTime
-                 << ", " << frameTimeSum / 20.f << "\n";
+                 << ", " << frameTimeSum / 20.f << "\n" << std::flush;
       frameTimeSum = .0f, maxFrameTime = .0f;
     }
   }
