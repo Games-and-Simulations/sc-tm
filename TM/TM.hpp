@@ -30,10 +30,6 @@ typedef enum { Self, Enemy } Winner;
 struct TournamentModuleManager;
 extern TournamentModuleManager tm;
 
-#ifdef BWAPI3
-BWAPI::Game *BWAPI::Broodwar;
-#endif
-
 #ifdef WIN32
 #include "Windows.h"
 // Assumes no unicode, ASCII only
@@ -93,6 +89,7 @@ struct TournamentModuleManager {
     TournamentModuleManager::TournamentModuleManager();
     frametimes.open(envvar("TM_LOG_FRAMETIMES").c_str());
     frametimes << "frame_count, frame_time_max, frame_time_avg\n";
+	BWAPI::Broodwar->setLocalSpeed(0);
   }
 
   template <typename Action>
