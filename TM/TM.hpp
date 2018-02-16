@@ -62,9 +62,13 @@ void PrintVar(std::ofstream &os, const char *name, const T &var, const char *pos
   os << "\t\"" << name << "\": " << var << postfix << "\n";
 }
 
-struct TournamentModuleManager {
-  TournamentModuleManager() : wr(WR Crash), winner(Wn Enemy) {
+const std::string log_results_file = Envvar("TM_LOG_RESULTS");
+const std::string log_frametimes_file = Envvar("TM_LOG_FRAMETIMES");
+const bool allow_user_input = (Envvar("TM_ALLOW_USER_INPUT").compare("1") == 0);
+const int speed_override = std::atoi(Envvar("TM_SPEED_OVERRIDE").c_str());
 
+struct TournamentModuleManager {
+  TournamentModuleManager() : win_reason(WR Crash), winner(Wn Enemy) {
   }
 
   ~TournamentModuleManager() _NOEXCEPT {
@@ -76,9 +80,9 @@ struct TournamentModuleManager {
   }
   void onReset() {
     TournamentModuleManager();
-    frametimes.open(Envvar("TM_LOG_FRAMETIMES").c_str());
-    frametimes << "frame_count, frame_time_max, frame_time_avg\n";
-    BWAPI::Broodwar->setLocalSpeed(0);
+    frametimes.open(log_frametimes_file.c_str());
+    frametimes << "frame_count,frame_time_max,frame_time_avg\n";
+    BWAPI::Broodwar->setLocalSpeed(speed_override);
     lastFrameTimePoint = SteadyClock::now();
   }
 
@@ -88,8 +92,9 @@ struct TournamentModuleManager {
     case BWAPI::Tournament::EnableFlag:
       switch (*static_cast<int *>(parameter)) {
       case BWAPI::Flag::CompleteMapInformation:
-      case BWAPI::Flag::UserInput:
         return false;
+      case BWAPI::Flag::UserInput:
+        return allow_user_input;
       default:
         return true;
       }
@@ -107,11 +112,11 @@ struct TournamentModuleManager {
   }
 
   void writeResults() const {
-    std::ofstream of(Envvar("TM_LOG_RESULTS").c_str());
+    std::ofstream of(log_results_file.c_str());
     if (of.is_open()) {
       of << "{\n";
       PrintVar(of, "is_winner", BoolName(winner == Wn Self), ",");
-      PrintVar(of, "is_crashed", BoolName(wr == WR Crash), ",");
+      PrintVar(of, "is_crashed", BoolName(win_reason == WR Crash), ",");
       PrintVar(of, "building_score", building_score, ",");
       PrintVar(of, "kill_score", kill_score, ",");
       PrintVar(of, "razing_score", razing_score, ",");
@@ -121,7 +126,7 @@ struct TournamentModuleManager {
   }
 
   void onEnd(bool didWin) {
-    wr = WR Eliminated;
+    win_reason = WR Eliminated;
     winner = didWin ? Wn Self : Wn Enemy;
   }
 
@@ -137,18 +142,22 @@ struct TournamentModuleManager {
     const float lastFrameDuration = Duration(now - lastFrameTimePoint).count();
     lastFrameTimePoint = now;
 
-    if (lastFrameDuration > maxFrameTime)
+    if (lastFrameDuration > maxFrameTime) {
       maxFrameTime = lastFrameDuration;
+    }
     frameTimeSum += lastFrameDuration;
 
     if (BWAPI::Broodwar->getFrameCount() % 20 == 19) {
-      frametimes << BWAPI::Broodwar->getFrameCount() + 1 << ", " << maxFrameTime
-        << ", " << frameTimeSum / 20.f << "\n" << std::flush;
+      frametimes 
+        << BWAPI::Broodwar->getFrameCount() + 1 << "," 
+        << maxFrameTime << "," 
+        << frameTimeSum / 20.f << "\n" 
+        << std::flush;
       frameTimeSum = .0f, maxFrameTime = .0f;
     }
   }
 
-  WinReason wr;
+  WinReason win_reason;
   Winner winner;
   int building_score;
   int kill_score;
