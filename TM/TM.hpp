@@ -153,7 +153,7 @@ struct TournamentModuleManager {
       int id = (*it)->getID();
       std::map<int, BWAPI::Position>::const_iterator it2 = lastCommandPosition.find(id);
       if (it2 != lastCommandPosition.end()) {
-        if ((*it)->getTargetPosition() != (*it2).second || ((*it)->getTarget() && (*it)->getTarget()->getID() != lastCommandTarget[id])) {
+        if (lastCommandType[id] != (*it)->getOrder().getID() || (*it)->getTargetPosition() != (*it2).second || ((*it)->getTarget() && (*it)->getTarget()->getID() != lastCommandTarget[id])) {
           ++num_actions;
         }
       }
@@ -161,6 +161,7 @@ struct TournamentModuleManager {
       lastCommandPosition[id] = (*it)->getTargetPosition();
       if((*it)->getTarget())
         lastCommandTarget[id] = (*it)->getTarget()->getID();
+      lastCommandType[id] = (*it)->getOrder().getID();
     }
 
     if (BWAPI::Broodwar->getFrameCount() % 20 == 19) {
@@ -198,6 +199,14 @@ struct TournamentModuleManager {
   TimePoint lastFrameTimePoint;
   float maxFrameTime;
   float frameTimeSum;
+  int num_actions;
+  int minerals_gathered;
+  int minerals_spent;
+  int gas_gathered;
+  int gas_spent;
+  std::map<int, BWAPI::Position> lastCommandPosition;
+  std::map<int, int> lastCommandTarget;
+  std::map<int, int> lastCommandType;
 
   struct TournamentModule : BWAPI::TournamentModule {
     bool onAction(TournamentAction action, void *parameter) override {
