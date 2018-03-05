@@ -82,7 +82,7 @@ struct TournamentModuleManager {
   void onReset() {
     TournamentModuleManager();
     frametimes.open(log_frametimes_file.c_str());
-    frametimes << "frame_count, frame_time_max, frame_time_avg, num_actions, minerals_gathered, minerals_spent, gas_gathered, gas_spent, supply_used, supply_total\n";
+    frametimes << "frame_count,frame_time_max,frame_time_avg,num_actions,minerals_gathered,minerals_spent,gas_gathered,gas_spent,supply_used,supply_total\n";
     BWAPI::Broodwar->setLocalSpeed(speed_override);
     lastFrameTimePoint = SteadyClock::now();
   }
@@ -169,13 +169,13 @@ struct TournamentModuleManager {
       frametimes
         << BWAPI::Broodwar->getFrameCount() + 1 << ","
         << maxFrameTime << ","
-        << frameTimeSum / 20.f << ", "
-        << num_actions << ", "
-        << BWAPI::Broodwar->self()->gatheredMinerals() - minerals_gathered << ", "
-        << BWAPI::Broodwar->self()->spentMinerals() - minerals_spent << ", "
-        << BWAPI::Broodwar->self()->gatheredGas() - gas_gathered << ", "
-        << BWAPI::Broodwar->self()->spentGas() - gas_spent  << ", "
-        << BWAPI::Broodwar->self()->supplyUsed() << ", "
+        << frameTimeSum / 20.f << ","
+        << num_actions << ","
+        << BWAPI::Broodwar->self()->gatheredMinerals() - minerals_gathered << ","
+        << BWAPI::Broodwar->self()->spentMinerals() - minerals_spent << ","
+        << BWAPI::Broodwar->self()->gatheredGas() - gas_gathered << ","
+        << BWAPI::Broodwar->self()->spentGas() - gas_spent  << ","
+        << BWAPI::Broodwar->self()->supplyUsed() << ","
         << BWAPI::Broodwar->self()->supplyTotal()
         << "\n" << std::flush;
 
