@@ -68,7 +68,8 @@ const bool allow_user_input = (Envvar("TM_ALLOW_USER_INPUT").compare("1") == 0);
 const int speed_override = std::atoi(Envvar("TM_SPEED_OVERRIDE").c_str());
 
 struct TournamentModuleManager {
-  TournamentModuleManager() : win_reason(WR Crash), winner(Wn Enemy) {
+  TournamentModuleManager() : win_reason(WR Crash), winner(Wn Enemy), num_actions(0), minerals_gathered(0), minerals_spent(0), gas_gathered(0), gas_spent(0) {
+
   }
 
   ~TournamentModuleManager() _NOEXCEPT {
@@ -81,7 +82,7 @@ struct TournamentModuleManager {
   void onReset() {
     TournamentModuleManager();
     frametimes.open(log_frametimes_file.c_str());
-    frametimes << "frame_count,frame_time_max,frame_time_avg\n";
+    frametimes << "frame_count, frame_time_max, frame_time_avg, num_actions, minerals_gathered, minerals_spent, gas_gathered, gas_spent\n";
     BWAPI::Broodwar->setLocalSpeed(speed_override);
     lastFrameTimePoint = SteadyClock::now();
   }
@@ -147,13 +148,43 @@ struct TournamentModuleManager {
     }
     frameTimeSum += lastFrameDuration;
 
+    // Check executed actions
+    for(BWAPI::Unitset::iterator it = BWAPI::Broodwar->self()->getUnits().begin(); it != BWAPI::Broodwar->self()->getUnits().end(); ++ it) {
+      int id = (*it)->getID();
+      std::map<int, BWAPI::Position>::const_iterator it2 = lastCommandPosition.find(id);
+      if (it2 != lastCommandPosition.end()) {
+        if ((*it)->getTargetPosition() != (*it2).second || ((*it)->getTarget() && (*it)->getTarget()->getID() != lastCommandTarget[id])) {
+          ++num_actions;
+        }
+      }
+
+      lastCommandPosition[id] = (*it)->getTargetPosition();
+      if((*it)->getTarget())
+        lastCommandTarget[id] = (*it)->getTarget()->getID();
+    }
+
     if (BWAPI::Broodwar->getFrameCount() % 20 == 19) {
-      frametimes 
-        << BWAPI::Broodwar->getFrameCount() + 1 << "," 
-        << maxFrameTime << "," 
-        << frameTimeSum / 20.f << "\n" 
-        << std::flush;
+      // Write game data to file
+      frametimes
+        << BWAPI::Broodwar->getFrameCount() + 1 << ","
+        << maxFrameTime << ","
+        << frameTimeSum / 20.f << ", "
+        << num_actions << ", "
+        << BWAPI::Broodwar->self()->gatheredMinerals() - minerals_gathered << ", "
+        << BWAPI::Broodwar->self()->spentMinerals() - minerals_spent << ", "
+        << BWAPI::Broodwar->self()->gatheredGas() - gas_gathered << ", "
+        << BWAPI::Broodwar->self()->spentGas() - gas_spent  << ", "
+        << BWAPI::Broodwar->self()->supplyUsed() << ", "
+        << BWAPI::Broodwar->self()->supplyTotal()
+        << "\n" << std::flush;
+
+      // Reset variables
       frameTimeSum = .0f, maxFrameTime = .0f;
+      num_actions = 0;
+      minerals_gathered = BWAPI::Broodwar->self()->gatheredMinerals();
+      minerals_spent = BWAPI::Broodwar->self()->spentMinerals();
+      gas_gathered = BWAPI::Broodwar->self()->gatheredGas();
+      gas_spent = BWAPI::Broodwar->self()->spentGas();
     }
   }
 
