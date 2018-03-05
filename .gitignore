@@ -1,5 +1,9 @@
 # Visual studio
 .vs/
+*.ncb
+TM_375_VS2008.sln
+*.suo
+*.user
 
 # Releases
 Release*/
