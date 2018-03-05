@@ -82,7 +82,7 @@ struct TournamentModuleManager {
   void onReset() {
     TournamentModuleManager();
     frametimes.open(log_frametimes_file.c_str());
-    frametimes << "frame_count, frame_time_max, frame_time_avg, num_actions, minerals_gathered, minerals_spent, gas_gathered, gas_spent\n";
+    frametimes << "frame_count, frame_time_max, frame_time_avg, num_actions, minerals_gathered, minerals_spent, gas_gathered, gas_spent, supply_used, supply_total\n";
     BWAPI::Broodwar->setLocalSpeed(speed_override);
     lastFrameTimePoint = SteadyClock::now();
   }
